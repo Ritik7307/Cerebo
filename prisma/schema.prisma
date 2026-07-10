@@ -1,0 +1,183 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String  @id @default(uuid())
+  clerkId       String  @unique
+  email         String  @unique
+  name          String?
+  xp            Int     @default(0)
+  level         Int     @default(1)
+  careerHealth  Float   @default(0.0)
+  currentStreak Int     @default(0)
+  longestStreak Int     @default(0)
+
+  dsaProgress     DSAProgress[]
+  internships     Internship[]
+  projects        Project[]
+  habits          Habit[]
+  focusSessions   FocusSession[]
+  events          Event[]
+  resumes         ResumeVersion[]
+  roadmapProgress RoadmapProgress[]
+  playlists       Playlist[]
+  aiRoadmaps      AIRoadmap[]
+  aiCompanyGuides AICompanyGuide[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DSAProgress {
+  id          String   @id @default(uuid())
+  userId      String
+  topic       String
+  problemName String
+  difficulty  String
+  status      String
+  timeSpent   Int
+  notes       String?
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Internship {
+  id              String    @id @default(uuid())
+  userId          String
+  company         String
+  role            String
+  status          String
+  package         String?
+  location        String?
+  applicationDate DateTime?
+  deadline        DateTime?
+  interviewNotes  String?
+  links           String?
+  referral        Boolean   @default(false)
+  resumeVersion   String?
+
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id           String  @id @default(uuid())
+  userId       String
+  title        String
+  status       String
+  githubUrl    String?
+  demoUrl      String?
+  techStack    String
+  timeInvested Int     @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Habit {
+  id       String @id @default(uuid())
+  userId   String
+  name     String
+  category String
+  streak   Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model FocusSession {
+  id          String   @id @default(uuid())
+  userId      String
+  duration    Int
+  task        String?
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Event {
+  id     String   @id @default(uuid())
+  userId String
+  title  String
+  date   DateTime
+  type   String
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ResumeVersion {
+  id       String  @id @default(uuid())
+  userId   String
+  title    String
+  atsScore Int
+  isMain   Boolean @default(false)
+  content  String?
+
+  user      User     @relation(fields: [userId], references: [id])
+  updatedAt DateTime @updatedAt
+}
+
+model RoadmapProgress {
+  id     String @id @default(uuid())
+  userId String
+  domain String
+  topic  String
+  status String
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Playlist {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  url         String
+  channel     String?
+  thumbnail   String?
+  category    String?
+  
+  user        User     @relation(fields: [userId], references: [id])
+  items       PlaylistItem[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PlaylistItem {
+  id          String   @id @default(uuid())
+  playlistId  String
+  title       String
+  videoId     String
+  sequence    Int
+  isCompleted Boolean  @default(false)
+  thumbnail   String?
+  duration    String?
+
+  playlist    Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+}
+
+model AIRoadmap {
+  id        String   @id @default(uuid())
+  userId    String
+  topic     String
+  content   String   // JSON string of generated roadmap
+  
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AICompanyGuide {
+  id        String   @id @default(uuid())
+  userId    String
+  companyName String
+  content   String   // JSON string of questions
+  
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
