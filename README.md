@@ -46,8 +46,9 @@ npm install
 Create a \`.env\` file in the root directory and add the following variables:
 
 \`\`\`env
-# Prisma Database URL
-DATABASE_URL="postgresql://user:password@localhost:5432/cerebo?schema=public"
+# Prisma Database URL (PostgreSQL / Supabase)
+DATABASE_URL="postgresql://user:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://user:password@aws-0-region.pooler.supabase.com:5432/postgres"
 
 # Groq API Key (for AI features)
 GROQ_API_KEY="your_groq_api_key_here"
