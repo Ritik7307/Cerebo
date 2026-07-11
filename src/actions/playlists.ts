@@ -78,9 +78,8 @@ export async function addPlaylist(url: string, category?: string) {
           thumbnail: v.thumbnail?.url || null,
           durationFormatted: v.durationFormatted || null,
         }));
-      }
-    } else {
-      // Robust Fallback: Check for official YouTube API Key first
+      } else {
+        // Robust Fallback: Check for official YouTube API Key first
       const listIdMatch = targetUrl.match(/list=([a-zA-Z0-9_-]+)/);
       if (!listIdMatch) throw new Error("Could not extract Playlist ID from URL.");
       const listId = listIdMatch[1];
@@ -158,6 +157,7 @@ export async function addPlaylist(url: string, category?: string) {
         throw new Error("Could not fetch playlist videos. Please check the URL or API Key.");
       }
     }
+  }
 
     // Create the playlist in DB
     const playlist = await prisma.playlist.create({
