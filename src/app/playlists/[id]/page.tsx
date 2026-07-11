@@ -3,7 +3,7 @@
 import { useState, use, useEffect, useCallback } from "react";
 import { getPlaylistById, togglePlaylistItem } from "@/actions/playlists";
 import { saveStudySession } from "@/actions/analytics";
-import { ChevronLeft, PlayCircle, CheckCircle2, Circle, Clock, X, Menu } from "lucide-react";
+import { ChevronLeft, PlayCircle, CheckCircle2, Circle, Clock, X, Menu, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import YouTube from 'react-youtube';
@@ -138,27 +138,47 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
         {/* Left Side: Video Player */}
         <div className="flex-1 bg-black overflow-y-auto">
           {activeVideo ? (
-            <div className="w-full aspect-video bg-black">
-              <YouTube
-                videoId={activeVideo}
-                opts={{
-                  width: '100%',
-                  height: '100%',
-                  playerVars: {
-                    autoplay: 1,
-                  },
-                }}
-                className="w-full h-full"
-                iframeClassName="w-full h-full"
-                onPlay={() => setIsTimerRunning(true)}
-                onPause={() => setIsTimerRunning(false)}
-                onEnd={() => setIsTimerRunning(false)}
-              />
-            </div>
+            activeVideo.startsWith('http') ? (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-950 p-8 text-center border-r border-zinc-900">
+                <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
+                  <ExternalLink className="w-10 h-10 text-blue-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">External Learning Resource</h2>
+                <p className="text-zinc-400 max-w-md mb-8">
+                  This content is hosted on an external platform. Click the button below to open it in a new tab. Don't forget to run your focus timer!
+                </p>
+                <a 
+                  href={activeVideo} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                >
+                  Open Resource <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+            ) : (
+              <div className="w-full aspect-video bg-black">
+                <YouTube
+                  videoId={activeVideo}
+                  opts={{
+                    width: '100%',
+                    height: '100%',
+                    playerVars: {
+                      autoplay: 1,
+                    },
+                  }}
+                  className="w-full h-full"
+                  iframeClassName="w-full h-full"
+                  onPlay={() => setIsTimerRunning(true)}
+                  onPause={() => setIsTimerRunning(false)}
+                  onEnd={() => setIsTimerRunning(false)}
+                />
+              </div>
+            )
           ) : (
-            <div className="text-zinc-600 flex flex-col items-center gap-4">
+            <div className="w-full h-full text-zinc-600 flex flex-col items-center justify-center gap-4">
               <PlayCircle className="w-16 h-16 opacity-50" />
-              <p>Select a video to start watching</p>
+              <p>Select a video or resource to start learning</p>
             </div>
           )}
         </div>

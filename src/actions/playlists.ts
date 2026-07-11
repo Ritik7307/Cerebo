@@ -22,15 +22,24 @@ export async function addPlaylist(url: string, category?: string) {
       // Ignore invalid URL formatting, let youtube-sr handle the error
     }
 
-    // Check if it's a single video URL
-    const isSingleVideo = (url.includes('watch?v=') && !url.includes('list=')) || url.includes('youtu.be/');
+    // Check URL types
+    const isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
+    const isSingleVideo = isYoutube && ((url.includes('watch?v=') && !url.includes('list=')) || url.includes('youtu.be/'));
 
     let playlistInfo;
     let title = "Unknown Playlist";
     let channel: string | null = null;
     let videos: any[] = [];
 
-    if (isSingleVideo) {
+    if (!isYoutube) {
+      title = new URL(targetUrl).hostname;
+      videos = [{
+        title: "External Resource",
+        id: targetUrl, // store full URL as ID
+        thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80", // generic learning thumbnail
+        durationFormatted: null
+      }];
+    } else if (isSingleVideo) {
       try {
         const videoInfo = await YouTubeSR.getVideo(url);
         if (videoInfo && videoInfo.id) {
