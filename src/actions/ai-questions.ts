@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAuthenticatedUser } from "./user";
 import { prisma } from "@/lib/prisma";
 
-export async function generateAICompanyGuide(companyName: string) {
+export async function generateAICompanyGuide(query: string) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
@@ -17,29 +17,33 @@ export async function generateAICompanyGuide(companyName: string) {
     }
 
     const systemPrompt = `You are a world-class Technical Recruiter and Staff Software Engineer. 
-The user wants a comprehensive, categorized list of real coding interview questions asked by: "${companyName}".
-You must synthesize data from top online resources (Wikipedia, GeeksforGeeks, LeetCode, company engineering blogs) to build the ultimate interview preparation guide for this company.
+The user wants a comprehensive, categorized list of real interview questions based on the query: "${query}".
+The query could be a company name (e.g., "Google", "Meta") OR a specific topic (e.g., "Computer Networks", "System Design", "OOPs", "Frontend", "Operating Systems").
+You must synthesize data from top online resources to build the ultimate interview preparation guide for this query.
 
 REQUIREMENTS:
 1. Provide a massive list of realistic questions. Do NOT hold back. 
-2. Categorize the questions into "Online Assessment (OA)", "Phone Screen", and "Onsite Rounds".
-3. Include the difficulty (Easy, Medium, Hard) and frequency (High, Medium, Low) for each.
-4. The output MUST be a valid JSON object.
+2. If the query is a COMPANY, categorize the questions into "Online Assessment (OA)", "Phone Screen", and "Onsite Rounds".
+3. If the query is a TOPIC, categorize the questions logically by sub-topics (e.g., "Basic Concepts", "Advanced Scenarios", "Real-world Applications").
+4. Include the difficulty (Easy, Medium, Hard) and frequency (High, Medium, Low) for each.
+5. In the "topics" array for each question, you MUST include the COMPANIES that frequently ask this question (if known), alongside the technical concepts.
+6. Not all questions are on LeetCode. For the reference link, use the best available platform where the user can practice or read about the question (e.g., LeetCode, GeeksforGeeks, HackerRank, Codeforces).
+7. The output MUST be a valid JSON object.
 
 The output MUST be a valid JSON object with the following structure exactly:
 {
-  "company": "Company Name",
-  "overview": "Brief 2-sentence overview of their interview process.",
+  "company": "Query Name (Company or Topic)",
+  "overview": "Brief 2-sentence overview of what to expect for this query.",
   "categories": [
     {
-      "name": "Online Assessment (OA)",
+      "name": "Category Name",
       "questions": [
         {
           "title": "Precise name of the question/problem",
           "difficulty": "Medium",
           "frequency": "High",
-          "topics": ["Arrays", "Hash Table"],
-          "leetcodeUrl": "https://leetcode.com/problems/precise-name-of-the-problem/"
+          "topics": ["Arrays", "Google", "Amazon"],
+          "referenceUrl": "https://leetcode.com/problems/precise-name-of-the-problem/ OR GeeksforGeeks link"
         }
       ]
     }
@@ -84,7 +88,7 @@ Return ONLY valid JSON. Do not include markdown formatting like \`\`\`json.`;
     const savedGuide = await prisma.aICompanyGuide.create({
       data: {
         userId: user.id,
-        companyName: companyName,
+        companyName: query,
         content: JSON.stringify(parsed)
       }
     });

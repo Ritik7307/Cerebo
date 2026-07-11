@@ -2,6 +2,7 @@
 
 import { useState, use, useEffect, useCallback } from "react";
 import { getPlaylistById, togglePlaylistItem } from "@/actions/playlists";
+import { saveStudySession } from "@/actions/analytics";
 import { ChevronLeft, PlayCircle, CheckCircle2, Circle, Clock, X, Menu } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,6 +18,7 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
   // Timer State (Stopwatch)
   const [timeElapsed, setTimeElapsed] = useState(0); // Starts at 0 seconds
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState(0);
   
   // Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -27,9 +29,19 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
       interval = setInterval(() => {
         setTimeElapsed((prev) => prev + 1);
       }, 1000);
+    } else if (!isTimerRunning && timeElapsed > lastSavedTime) {
+      // Save session if timer stopped and time has accumulated
+      const durationToSave = timeElapsed - lastSavedTime;
+      if (durationToSave >= 60) {
+        saveStudySession(durationToSave, playlist?.title || "Video Study").then((res) => {
+          if (res.success) {
+             setLastSavedTime(timeElapsed);
+          }
+        });
+      }
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning]);
+  }, [isTimerRunning, timeElapsed, lastSavedTime, playlist]);
 
 
   const formatTime = (seconds: number) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Trash2, ArrowRight, BarChart, Clock } from "lucide-react";
+import { Building2, Trash2, ArrowRight, BarChart, Clock, ExternalLink } from "lucide-react";
 import { generateAICompanyGuide, deleteAICompanyGuide } from "@/actions/ai-questions";
 
 export function AIQuestionBoard({ initialGuides }: { initialGuides: any[] }) {
@@ -36,16 +36,16 @@ export function AIQuestionBoard({ initialGuides }: { initialGuides: any[] }) {
       {/* Generation Form */}
       <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-zinc-800 rounded-2xl p-6 md:p-8 animate-in fade-in">
         <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-2xl font-bold text-white">Generate Company Interview Guide</h2>
+          <h2 className="text-2xl font-bold text-white">Generate Interview Guide</h2>
         </div>
-        <p className="text-zinc-400 mb-6">Type any company and role (e.g., "Google Frontend" or "Amazon SDE2") and our AI will scrape top online resources to build a master list of real interview questions.</p>
+        <p className="text-zinc-400 mb-6">Type any company (e.g., "Google", "Amazon") or topic (e.g., "System Design", "Operating Systems") and our AI will build a master list of real interview questions and references for you.</p>
         
         <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-3">
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="e.g. Netflix Backend, Meta Data Engineer..." 
+            placeholder="e.g., Google, Meta, or System Design, Computer Networks..."
             disabled={loading}
             className="flex-1 bg-zinc-950/50 border border-zinc-700 rounded-lg px-4 py-3 text-white outline-none focus:border-blue-500 transition-colors" 
           />
@@ -125,14 +125,14 @@ export function AIQuestionBoard({ initialGuides }: { initialGuides: any[] }) {
                               )}
                             </div>
                             
-                            {q.leetcodeUrl && (
+                            {q.referenceUrl && (
                               <a 
-                                href={q.leetcodeUrl} 
+                                href={q.referenceUrl} 
                                 target="_blank" 
-                                rel="noreferrer"
-                                className="px-4 py-2 bg-[#FFA116]/10 hover:bg-[#FFA116]/20 text-[#FFA116] border border-[#FFA116]/20 rounded-lg text-xs font-bold uppercase tracking-wide transition-colors flex items-center gap-2"
+                                rel="noreferrer" 
+                                className="mt-3 inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                               >
-                                Solve on LeetCode <ArrowRight className="w-3 h-3" />
+                                Practice/Read <ExternalLink className="w-3 h-3" />
                               </a>
                             )}
                           </div>
