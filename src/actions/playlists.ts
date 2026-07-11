@@ -27,8 +27,8 @@ export async function addPlaylist(url: string, category?: string) {
 
     let playlistInfo;
     let title = "Unknown Playlist";
-    let channel = null;
-    let videos = [];
+    let channel: string | null = null;
+    let videos: any[] = [];
 
     if (isSingleVideo) {
       try {
