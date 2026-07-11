@@ -2,7 +2,7 @@
 
 import { useState, use, useEffect, useCallback } from "react";
 import { getPlaylistById, togglePlaylistItem } from "@/actions/playlists";
-import { ChevronLeft, PlayCircle, CheckCircle2, Circle, Clock } from "lucide-react";
+import { ChevronLeft, PlayCircle, CheckCircle2, Circle, Clock, X, Menu } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import YouTube from 'react-youtube';
@@ -17,6 +17,9 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
   // Timer State (Stopwatch)
   const [timeElapsed, setTimeElapsed] = useState(0); // Starts at 0 seconds
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  
+  // Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -104,6 +107,16 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
               style={{ width: `${progress}%` }} 
             />
           </div>
+
+          {!isSidebarOpen && (
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-1.5 bg-zinc-800/80 hover:bg-zinc-700/80 rounded-lg border border-zinc-700 transition-colors"
+              title="Show Playlist"
+            >
+              <Menu className="w-5 h-5 text-zinc-400" />
+            </button>
+          )}
         </div>
       </header>
 
@@ -139,12 +152,20 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
         </div>
 
         {/* Right Side: Playlist Tracker */}
-        <div className="w-96 bg-zinc-950 border-l border-zinc-800 overflow-y-auto shrink-0 flex flex-col">
-          <div className="p-4 border-b border-zinc-800 bg-zinc-900/30 sticky top-0 z-10 backdrop-blur-md">
-            <h2 className="font-bold tracking-tight">Course Content</h2>
-          </div>
-          
-          <div className="flex-1 p-2 space-y-1">
+        {isSidebarOpen && (
+          <div className="w-96 bg-zinc-950 border-l border-zinc-800 overflow-y-auto shrink-0 flex flex-col">
+            <div className="p-4 border-b border-zinc-800 bg-zinc-900/30 sticky top-0 z-10 backdrop-blur-md flex justify-between items-center">
+              <h2 className="font-bold tracking-tight">Course Content</h2>
+              <button 
+                onClick={() => setIsSidebarOpen(false)}
+                className="p-1 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-white transition-colors"
+                title="Hide Sidebar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 p-2 space-y-1">
             {playlist.items.map((item: any, index: number) => {
               const isActive = activeVideo === item.videoId;
               
@@ -183,6 +204,7 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
             })}
           </div>
         </div>
+        )}
 
       </div>
     </div>
