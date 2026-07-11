@@ -6,6 +6,7 @@ import {
   Calendar as CalendarIcon
 } from "lucide-react";
 import { getAuthenticatedUser } from "@/actions/user";
+import { getAnalyticsData } from "@/actions/analytics";
 import { prisma } from "@/lib/prisma";
 import { LearningHoursChart } from "@/components/features/LearningHoursChart";
 
@@ -28,6 +29,8 @@ export default async function Dashboard() {
     orderBy: { completedAt: 'desc' },
     take: 3
   });
+
+  const analyticsData = await getAnalyticsData();
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -56,7 +59,7 @@ export default async function Dashboard() {
         />
         <StatCard 
           title="Learning Hours" 
-          value="0h" 
+          value={`${analyticsData?.totalStudyHours || '0'}h`} 
           trend="This week"
           icon={<Zap className="w-5 h-5 text-yellow-500" />}
         />
@@ -92,7 +95,7 @@ export default async function Dashboard() {
           <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 backdrop-blur-sm min-h-[300px]">
              <h2 className="text-lg font-semibold mb-4">Weekly Progress</h2>
              <div className="w-full mt-4">
-                <LearningHoursChart />
+                <LearningHoursChart chartData={analyticsData?.chartData || []} />
              </div>
           </div>
 
