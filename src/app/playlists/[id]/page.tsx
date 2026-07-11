@@ -5,6 +5,7 @@ import { getPlaylistById, togglePlaylistItem } from "@/actions/playlists";
 import { ChevronLeft, PlayCircle, CheckCircle2, Circle, Clock } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import YouTube from 'react-youtube';
 
 export default function PlaylistDetailClient({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -110,18 +111,24 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
       <div className="flex flex-1 overflow-hidden">
         
         {/* Left Side: Video Player */}
-        <div className="flex-1 bg-black flex flex-col items-center justify-start pt-12 relative p-6">
+        <div className="flex-1 bg-black overflow-y-auto">
           {activeVideo ? (
-            <div className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl border border-zinc-800 bg-zinc-900">
-              <iframe
-                width="100%"
-                height="100%"
-                src={`https://www.youtube.com/embed/${activeVideo}?autoplay=1`}
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
+            <div className="w-full aspect-video bg-black">
+              <YouTube
+                videoId={activeVideo}
+                opts={{
+                  width: '100%',
+                  height: '100%',
+                  playerVars: {
+                    autoplay: 1,
+                  },
+                }}
+                className="w-full h-full"
+                iframeClassName="w-full h-full"
+                onPlay={() => setIsTimerRunning(true)}
+                onPause={() => setIsTimerRunning(false)}
+                onEnd={() => setIsTimerRunning(false)}
+              />
             </div>
           ) : (
             <div className="text-zinc-600 flex flex-col items-center gap-4">
