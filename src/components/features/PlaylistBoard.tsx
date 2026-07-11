@@ -100,33 +100,33 @@ export function PlaylistBoard({ initialPlaylists }: { initialPlaylists: any[] })
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-white mb-1">Your Courses</h2>
-          <p className="text-sm text-zinc-400">Import YouTube playlists and track your progress.</p>
+          <p className="text-sm text-zinc-400">Import courses, YouTube videos, and playlists to track your progress.</p>
         </div>
         <button 
           onClick={() => setIsAdding(!isAdding)}
           className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md font-medium hover:bg-zinc-200 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Import Playlist
+          Import Course
         </button>
       </div>
 
       {isAdding && (
         <form onSubmit={handleAdd} className="bg-zinc-900 border border-zinc-700 rounded-xl p-5 space-y-4 max-w-xl animate-in fade-in">
           <h3 className="text-white font-semibold flex items-center gap-2">
-            <PlaySquare className="w-5 h-5 text-red-500" />
-            Import YouTube Playlist
+            <PlaySquare className="w-5 h-5 text-blue-500" />
+            Import Course or Video
           </h3>
-          <p className="text-xs text-zinc-400">Paste a public YouTube playlist URL.</p>
+          <p className="text-xs text-zinc-400">Paste a YouTube URL (video/playlist) or an external course link (e.g., Udemy).</p>
           
           <div className="space-y-3">
             <div>
-              <label className="block text-xs text-zinc-400 mb-1">YouTube Playlist URL</label>
+              <label className="block text-xs text-zinc-400 mb-1">Course / Video URL</label>
               <input 
                 type="url" 
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://www.youtube.com/playlist?list=..." 
+                placeholder="https://youtube.com/... or https://udemy.com/..." 
                 required 
                 className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm outline-none text-white focus:border-red-500 transition-colors" 
               />

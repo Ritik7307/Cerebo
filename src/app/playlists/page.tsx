@@ -8,7 +8,7 @@ export default async function PlaylistsPage() {
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       <header>
         <h1 className="text-3xl font-heading font-bold text-white tracking-tight">Learning Hub</h1>
-        <p className="text-zinc-400">Import structured playlists and track your course completion.</p>
+        <p className="text-zinc-400">Import courses, videos, and playlists to track your learning journey.</p>
       </header>
 
       <PlaylistBoard initialPlaylists={playlists} />
