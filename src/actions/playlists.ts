@@ -78,6 +78,7 @@ export async function addPlaylist(url: string, category?: string) {
           thumbnail: v.thumbnail?.url || null,
           durationFormatted: v.durationFormatted || null,
         }));
+      }
     } else {
       // Robust Fallback: Check for official YouTube API Key first
       const listIdMatch = targetUrl.match(/list=([a-zA-Z0-9_-]+)/);
