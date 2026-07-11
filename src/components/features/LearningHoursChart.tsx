@@ -2,19 +2,12 @@
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Week 1', hours: 0 },
-  { name: 'Week 2', hours: 0 },
-  { name: 'Week 3', hours: 0 },
-  { name: 'Week 4', hours: 0 },
-];
-
-export function LearningHoursChart() {
+export function LearningHoursChart({ chartData }: { chartData: any[] }) {
   return (
     <div className="w-full h-full min-h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          data={data}
+          data={chartData}
           margin={{
             top: 10,
             right: 30,

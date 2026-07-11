@@ -1,13 +1,42 @@
-import { BarChart3, TrendingUp, Calendar, Zap } from "lucide-react";
+import { BarChart3, TrendingUp, Calendar, Zap, BookOpen, Clock as ClockIcon } from "lucide-react";
 import { LearningHoursChart } from "@/components/features/LearningHoursChart";
+import { getAnalyticsData } from "@/actions/analytics";
 
-export default function AnalyticsPage() {
+export default async function AnalyticsPage() {
+  const data = await getAnalyticsData();
+  
+  if (!data) {
+    return <div className="p-8 text-center text-zinc-500">Please sign in to view analytics.</div>;
+  }
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
       <header>
         <h1 className="text-3xl font-heading font-bold text-white tracking-tight">Analytics</h1>
         <p className="text-zinc-400">Deep dive into your performance and consistency.</p>
       </header>
+      
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 flex items-center gap-4">
+          <div className="p-3 bg-blue-500/10 rounded-lg">
+            <ClockIcon className="w-6 h-6 text-blue-400" />
+          </div>
+          <div>
+            <p className="text-zinc-400 text-sm font-medium">Total Study Time</p>
+            <h3 className="text-2xl font-bold text-white">{data.totalStudyHours} <span className="text-lg font-medium text-zinc-500">hrs</span></h3>
+          </div>
+        </div>
+        
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 flex items-center gap-4">
+          <div className="p-3 bg-emerald-500/10 rounded-lg">
+            <BookOpen className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-zinc-400 text-sm font-medium">Total Topics Covered</p>
+            <h3 className="text-2xl font-bold text-white">{data.totalTopicsCovered}</h3>
+          </div>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
@@ -17,7 +46,7 @@ export default function AnalyticsPage() {
               Learning Hours (This Month)
             </h2>
             <div className="flex-1 mt-4">
-              <LearningHoursChart />
+              <LearningHoursChart chartData={data.chartData} />
             </div>
           </div>
         </div>
@@ -45,10 +74,9 @@ export default function AnalyticsPage() {
               Skill Distribution
             </h2>
             <div className="space-y-4">
-              <SkillBar name="Frontend" percentage={80} color="bg-blue-500" />
-              <SkillBar name="Backend" percentage={65} color="bg-emerald-500" />
-              <SkillBar name="Algorithms" percentage={45} color="bg-purple-500" />
-              <SkillBar name="System Design" percentage={20} color="bg-orange-500" />
+              {data.skillDistribution.map((skill: any, idx: number) => (
+                <SkillBar key={idx} name={skill.name} percentage={skill.percentage} color={skill.color} />
+              ))}
             </div>
           </div>
         </div>
