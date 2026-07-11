@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 250px;
+      padding: 15px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #09090b;
+      color: #fff;
+      margin: 0;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .slider-container {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input[type=range] {
+      width: 100%;
+      cursor: pointer;
+    }
+    #volume-display {
+      font-weight: bold;
+      font-size: 24px;
+      text-align: center;
+      color: #10b981;
+    }
+    .marks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #71717a;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎧 Cerebo Volume Booster</h2>
+  <div class="slider-container">
+    <div id="volume-display">100%</div>
+    <input type="range" id="volume-slider" min="0" max="600" value="100">
+    <div class="marks">
+      <span>0%</span>
+      <span>100%</span>
+      <span>300%</span>
+      <span>600%</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -35,7 +35,7 @@ The output MUST be a valid JSON object with the following structure exactly:
         {
           "name": "Topic Name",
           "description": "Highly detailed 2-3 sentence description.",
-          "gfgUrl": "https://www.geeksforgeeks.org/search/?q=Exact+Topic+Name"
+          "gfgUrl": "Direct URL to the specific GeeksforGeeks tutorial/article for this topic (e.g. 'https://www.geeksforgeeks.org/introduction-to-linked-list/'). Do NOT link to courses or search pages."
         }
       ]
     }

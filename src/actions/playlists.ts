@@ -22,27 +22,62 @@ export async function addPlaylist(url: string, category?: string) {
       // Ignore invalid URL formatting, let youtube-sr handle the error
     }
 
-    // Parse the playlist URL using youtube-sr
-    let playlistInfo;
-    try {
-      playlistInfo = await YouTubeSR.getPlaylist(targetUrl);
-    } catch (e: unknown) {
-      console.warn("youtube-sr failed, falling back to RSS:", e);
-    }
+    // Check if it's a single video URL
+    const isSingleVideo = (url.includes('watch?v=') && !url.includes('list=')) || url.includes('youtu.be/');
 
+    let playlistInfo;
     let title = "Unknown Playlist";
     let channel = null;
     let videos = [];
 
-    if (playlistInfo && playlistInfo.videos && playlistInfo.videos.length > 0) {
-      title = playlistInfo.title || "Unknown Playlist";
-      channel = playlistInfo.channel?.name || null;
-      videos = playlistInfo.videos.map(v => ({
-        title: v.title || "Unknown Video",
-        id: v.id || "",
-        thumbnail: v.thumbnail?.url || null,
-        durationFormatted: v.durationFormatted || null,
-      }));
+    if (isSingleVideo) {
+      try {
+        const videoInfo = await YouTubeSR.getVideo(url);
+        if (videoInfo && videoInfo.id) {
+          title = videoInfo.title || "Unknown Video";
+          channel = videoInfo.channel?.name || null;
+          videos = [{
+            title: videoInfo.title || "Unknown Video",
+            id: videoInfo.id,
+            thumbnail: videoInfo.thumbnail?.url || `https://i.ytimg.com/vi/${videoInfo.id}/hqdefault.jpg`,
+            durationFormatted: videoInfo.durationFormatted || null,
+          }];
+        }
+      } catch (e) {
+        // Fallback for single video parsing
+        const vIdMatch = url.match(/(?:v=|youtu\.be\/)([^&]+)/);
+        if (vIdMatch) {
+          const vId = vIdMatch[1];
+          title = "YouTube Video";
+          videos = [{
+            title,
+            id: vId,
+            thumbnail: `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`,
+            durationFormatted: null
+          }];
+        }
+      }
+      
+      if (videos.length === 0) {
+         throw new Error("Could not fetch video. Please check the URL.");
+      }
+    } else {
+      // Parse the playlist URL using youtube-sr
+      try {
+        playlistInfo = await YouTubeSR.getPlaylist(targetUrl);
+      } catch (e: unknown) {
+        console.warn("youtube-sr failed, falling back to RSS:", e);
+      }
+
+      if (playlistInfo && playlistInfo.videos && playlistInfo.videos.length > 0) {
+        title = playlistInfo.title || "Unknown Playlist";
+        channel = playlistInfo.channel?.name || null;
+        videos = playlistInfo.videos.map(v => ({
+          title: v.title || "Unknown Video",
+          id: v.id || "",
+          thumbnail: v.thumbnail?.url || null,
+          durationFormatted: v.durationFormatted || null,
+        }));
     } else {
       // Robust Fallback: Check for official YouTube API Key first
       const listIdMatch = targetUrl.match(/list=([a-zA-Z0-9_-]+)/);

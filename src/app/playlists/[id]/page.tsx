@@ -27,12 +27,6 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
-  // Start timer automatically when a video is selected
-  useEffect(() => {
-    if (activeVideo) {
-      setIsTimerRunning(true);
-    }
-  }, [activeVideo]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -116,7 +110,7 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
       <div className="flex flex-1 overflow-hidden">
         
         {/* Left Side: Video Player */}
-        <div className="flex-1 bg-black flex flex-col items-center justify-center relative p-6">
+        <div className="flex-1 bg-black flex flex-col items-center justify-start pt-12 relative p-6">
           {activeVideo ? (
             <div className="w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl border border-zinc-800 bg-zinc-900">
               <iframe
