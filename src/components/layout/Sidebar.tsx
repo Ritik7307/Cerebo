@@ -14,7 +14,8 @@ import {
   BrainCircuit,
   GraduationCap,
   PlaySquare,
-  Building2
+  Building2,
+  Megaphone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,7 @@ export const NAV_ITEMS = [
   { name: "Interview Questions", href: "/questions", icon: Building2 },
   { name: "Internships", href: "/internships", icon: Briefcase },
   { name: "Projects", href: "/projects", icon: FolderGit2 },
+  { name: "Job Updates", href: "/updates", icon: Megaphone },
   { name: "Resume", href: "/resume", icon: FileText },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },

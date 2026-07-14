@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Key } from "react";
 import { FolderGit2, GitBranch, Globe, Clock, Plus } from "lucide-react";
 import { addProject, updateProjectStatus } from "@/actions/projects";
 import type { Project } from "@prisma/client";
@@ -64,7 +64,7 @@ export function ProjectBoard({ initialProjects }: { initialProjects: Project[] }
 
 function ProjectCard({ project, onStatusChange }: { project: Project, onStatusChange: (id: string, status: string) => void }) {
   const { id, title, status, techStack, timeInvested } = project;
-  const tech = techStack ? techStack.split(",").map(t => t.trim()) : [];
+  const tech = techStack ? techStack.split(",").map((t: string) => t.trim()) : [];
 
   const statusColor = status === "Completed" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
     : status === "Building" ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
@@ -88,7 +88,7 @@ function ProjectCard({ project, onStatusChange }: { project: Project, onStatusCh
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {tech.map((t, index) => (
+        {tech.map((t: Key | null | undefined, index: any) => (
           <span key={t} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded-md">
             {String(t)}
           </span>

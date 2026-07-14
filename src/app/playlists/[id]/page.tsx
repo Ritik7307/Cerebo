@@ -88,8 +88,23 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
     await togglePlaylistItem(itemId, !currentStatus);
   };
 
+  const handleVideoEnd = async () => {
+    if (!playlist || !activeVideo) return;
+    
+    const currentItem = playlist.items.find((i: any) => i.videoId === activeVideo);
+    if (currentItem && !currentItem.isCompleted) {
+      await handleToggle(currentItem.id, false);
+    }
+
+    const currentIndex = playlist.items.findIndex((i: any) => i.videoId === activeVideo);
+    if (currentIndex !== -1 && currentIndex < playlist.items.length - 1) {
+      const nextVideo = playlist.items[currentIndex + 1];
+      setActiveVideo(nextVideo.videoId);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full bg-zinc-950 overflow-hidden text-white -m-8">
+    <div className="flex flex-col h-[calc(100vh-64px)] bg-zinc-950 overflow-hidden text-white -m-6">
       {/* Top Navbar */}
       <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
         <div className="flex items-center gap-4">
@@ -133,10 +148,10 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
       </header>
 
       {/* Split Layout */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         
         {/* Left Side: Video Player */}
-        <div className="flex-1 bg-black overflow-y-auto">
+        <div className="w-full lg:flex-1 bg-black lg:overflow-y-auto flex-shrink-0">
           {activeVideo ? (
             activeVideo.startsWith('http') ? (
               <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-950 p-8 text-center border-r border-zinc-900">
@@ -171,7 +186,10 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
                   iframeClassName="w-full h-full"
                   onPlay={() => setIsTimerRunning(true)}
                   onPause={() => setIsTimerRunning(false)}
-                  onEnd={() => setIsTimerRunning(false)}
+                  onEnd={() => {
+                    setIsTimerRunning(false);
+                    handleVideoEnd();
+                  }}
                 />
               </div>
             )
@@ -185,7 +203,7 @@ export default function PlaylistDetailClient({ params }: { params: Promise<{ id:
 
         {/* Right Side: Playlist Tracker */}
         {isSidebarOpen && (
-          <div className="w-96 bg-zinc-950 border-l border-zinc-800 overflow-y-auto shrink-0 flex flex-col">
+          <div className="w-full lg:w-96 bg-zinc-950 lg:border-l border-t lg:border-t-0 border-zinc-800 overflow-y-auto shrink-0 flex flex-col">
             <div className="p-4 border-b border-zinc-800 bg-zinc-900/30 sticky top-0 z-10 backdrop-blur-md flex justify-between items-center">
               <h2 className="font-bold tracking-tight">Course Content</h2>
               <button 
