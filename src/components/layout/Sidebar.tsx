@@ -15,7 +15,8 @@ import {
   GraduationCap,
   PlaySquare,
   Building2,
-  Megaphone
+  Megaphone,
+  UserCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export const NAV_ITEMS = [
   { name: "Resume", href: "/resume", icon: FileText },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Profile", href: "/profile", icon: UserCircle },
 ];
 
 export function Sidebar() {

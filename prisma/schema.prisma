@@ -19,6 +19,7 @@ model User {
   careerHealth  Float   @default(0.0)
   currentStreak Int     @default(0)
   longestStreak Int     @default(0)
+  links         Json?
 
   dsaProgress     DSAProgress[]
   internships     Internship[]
