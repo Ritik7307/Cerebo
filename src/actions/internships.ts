@@ -44,3 +44,14 @@ export async function updateInternshipStatus(id: string, newStatus: string) {
   
   revalidatePath("/internships");
 }
+
+export async function deleteInternship(id: string) {
+  const user = await getAuthenticatedUser();
+  if (!user) throw new Error("Unauthorized");
+
+  await prisma.internship.deleteMany({
+    where: { id, userId: user.id },
+  });
+  
+  revalidatePath("/internships");
+}

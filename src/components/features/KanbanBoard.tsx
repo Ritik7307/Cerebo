@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, MoreHorizontal, Calendar, Briefcase, Building } from "lucide-react";
-import { addInternship, updateInternshipStatus } from "@/actions/internships";
+import { Plus, MoreHorizontal, Calendar, Briefcase, Building, Trash2 } from "lucide-react";
+import { addInternship, updateInternshipStatus, deleteInternship } from "@/actions/internships";
 import type { Internship } from "@prisma/client";
 
 const COLUMNS = ["Wishlist", "Applied", "OA", "Interview", "Offer", "Rejected"];
@@ -27,6 +27,14 @@ export function KanbanBoard({ initialInternships }: { initialInternships: Intern
     // Optimistic update
     setApps(apps.map(a => a.id === id ? { ...a, status: newStatus } : a));
     await updateInternshipStatus(id, newStatus);
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this application?")) {
+      setApps(apps.filter(a => a.id !== id));
+      await deleteInternship(id);
+    }
   };
 
   return (
@@ -108,8 +116,17 @@ export function KanbanBoard({ initialInternships }: { initialInternships: Intern
                         <Calendar className="w-3.5 h-3.5" />
                         {new Date(app.createdAt).toLocaleDateString()}
                       </div>
-                      <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                        <Building className="w-3 h-3" />
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={(e) => handleDelete(app.id, e)}
+                          title="Delete application"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-zinc-500 hover:text-red-500 rounded hover:bg-red-500/10"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                          <Building className="w-3 h-3" />
+                        </div>
                       </div>
                     </div>
                   </div>
