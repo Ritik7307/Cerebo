@@ -1,6 +1,7 @@
 "use server";
 
 import { getAuthenticatedUser } from "./user";
+import { Groq } from "groq-sdk";
 
 export type JobUpdate = {
   id: string;
@@ -12,6 +13,8 @@ export type JobUpdate = {
   applyLink: string;
   notes: string;
   postedAt: string;
+  location: string;
+  isRemote: boolean;
 };
 
 export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates?: JobUpdate[]; error?: string }> {
@@ -21,10 +24,11 @@ export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates
       return { success: false, error: "Unauthorized" };
     }
 
-    // Fetching from multiple real job APIs to maximize coverage (Internships + Full-time)
-    const [remotiveRes, arbeitnowRes] = await Promise.all([
-      fetch("https://remotive.com/api/remote-jobs?category=software-dev&limit=40", { next: { revalidate: 3600 } }).catch(() => null),
-      fetch("https://www.arbeitnow.com/api/job-board-api", { next: { revalidate: 3600 } }).catch(() => null)
+    // Fetching from multiple real job APIs + Groq AI for localized fresher drives
+    const [remotiveRes, arbeitnowRes, groqRes] = await Promise.all([
+      fetch("https://remotive.com/api/remote-jobs?category=software-dev&limit=100", { next: { revalidate: 3600 } }).catch(() => null),
+      fetch("https://www.arbeitnow.com/api/job-board-api", { next: { revalidate: 3600 } }).catch(() => null),
+      fetchGroqUpdates()
     ]);
 
     let allParsedJobs: JobUpdate[] = [];
@@ -50,6 +54,9 @@ export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates
         if (diffDays === 0) postedStr = "Today";
         else if (diffDays === 1) postedStr = "Yesterday";
 
+        const loc = job.candidate_required_location || "Worldwide";
+        const isRemote = true;
+
         return {
           id: `remotive-${job.id}`,
           company: job.company_name,
@@ -58,8 +65,10 @@ export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates
           status: "Open",
           deadline: "Rolling",
           applyLink: job.url,
-          notes: `Location: ${job.candidate_required_location || "Remote"}`,
-          postedAt: postedStr
+          notes: `Location: ${loc}`,
+          postedAt: postedStr,
+          location: loc,
+          isRemote
         };
       });
       allParsedJobs = [...allParsedJobs, ...parsedRemotive];
@@ -86,6 +95,9 @@ export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates
         if (diffDays === 0) postedStr = "Today";
         else if (diffDays === 1) postedStr = "Yesterday";
 
+        const loc = job.location || "Remote";
+        const isRemote = job.remote || false;
+
         return {
           id: `arbeitnow-${job.slug}`,
           company: job.company_name,
@@ -94,11 +106,18 @@ export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates
           status: "Open",
           deadline: "Rolling",
           applyLink: job.url,
-          notes: `Location: ${job.location || "Remote"}${job.remote ? " (Supports Remote)" : ""}`,
-          postedAt: postedStr
+          notes: `Location: ${loc}${isRemote ? " (Supports Remote)" : ""}`,
+          postedAt: postedStr,
+          location: loc,
+          isRemote
         };
       });
       allParsedJobs = [...allParsedJobs, ...parsedArbeitnow];
+    }
+
+    // 3. Add AI Simulated Local Drives (Wipro, Flipkart, etc)
+    if (groqRes && groqRes.length > 0) {
+      allParsedJobs = [...groqRes, ...allParsedJobs];
     }
 
     // Sort all jobs so that "Today" / "Yesterday" appear first
@@ -117,5 +136,80 @@ export async function fetchLiveJobUpdates(): Promise<{ success: boolean; updates
     console.error("Updates Fetch Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: errorMessage || "Failed to fetch real job updates." };
+  }
+}
+
+// Helper function to fetch localized tech drives using Groq
+async function fetchGroqUpdates(): Promise<JobUpdate[]> {
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const response = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert tech recruiter API. Output ONLY valid JSON containing an array of 15 current/recent active off-campus drives or internships in India for freshers and junior developers. 
+Include top companies like Wipro, Flipkart, TCS, Amazon, Google, Microsoft, Adobe, Swiggy, Zomato, Infosys, and Tech Mahindra. 
+CRITICAL: For the "applyLink", you MUST provide the official career page root url of that company (e.g., https://careers.wipro.com/careers-home/, https://www.flipkartcareers.com/) to ensure it is a valid, working link. Do not make up fake specific job paths.
+Output format:
+{
+  "jobs": [
+    {
+      "company": "Company Name",
+      "role": "Role Name",
+      "type": "Internship" | "Full-time",
+      "status": "Open",
+      "deadline": "Closing Soon" or a date,
+      "applyLink": "OFFICIAL_CAREERS_URL",
+      "notes": "Short description",
+      "location": "India (Hybrid/On-site)",
+      "isRemote": false
+    }
+  ]
+}`
+        }
+      ],
+      temperature: 0.7,
+      response_format: { type: "json_object" }
+    });
+
+    const content = response.choices[0]?.message?.content || "[]";
+    // Since response_format is json_object, we need to wrap the array in an object in the prompt, or just parse safely.
+    // Wait, json_object requires an object. The prompt asks for an array. Let's parse whatever is returned.
+    let parsed: any;
+    try {
+      parsed = JSON.parse(content);
+      // If it returned an object with a key containing the array (e.g. { "jobs": [...] }), extract it.
+      if (!Array.isArray(parsed) && typeof parsed === "object") {
+        const keys = Object.keys(parsed);
+        if (keys.length > 0 && Array.isArray(parsed[keys[0]])) {
+          parsed = parsed[keys[0]];
+        } else {
+          parsed = [];
+        }
+      }
+    } catch {
+      parsed = [];
+    }
+
+    if (Array.isArray(parsed)) {
+      return parsed.map((job, idx) => ({
+        id: `ai-local-${idx}`,
+        company: job.company || "Unknown",
+        role: job.role || "Role",
+        type: job.type === "Internship" ? "Internship" : "Full-time",
+        status: "Open",
+        deadline: job.deadline || "Rolling",
+        applyLink: job.applyLink || "#",
+        notes: job.notes || "",
+        location: job.location || "India",
+        isRemote: job.isRemote || false,
+        postedAt: "Today"
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error("Groq Local Drives fetch error:", error);
+    return [];
   }
 }

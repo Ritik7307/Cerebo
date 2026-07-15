@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 
 export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
   const [search, setSearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  const [isRemoteOnly, setIsRemoteOnly] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"All" | JobUpdate["type"]>("All");
   const [timeFilter, setTimeFilter] = useState<"Any time" | "Today" | "Yesterday" | "Past Week">("Any time");
 
@@ -20,10 +22,19 @@ export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
         if (!matchTitle && !matchCompany) return false;
       }
       
-      // 2. Type Filter
+      // 2. Location Search
+      if (locationSearch) {
+        const query = locationSearch.toLowerCase();
+        if (!job.location.toLowerCase().includes(query)) return false;
+      }
+
+      // 3. Remote Only
+      if (isRemoteOnly && !job.isRemote) return false;
+
+      // 4. Type Filter
       if (typeFilter !== "All" && job.type !== typeFilter) return false;
 
-      // 3. Time Filter
+      // 5. Time Filter
       if (timeFilter !== "Any time") {
         if (timeFilter === "Today" && job.postedAt !== "Today") return false;
         if (timeFilter === "Yesterday" && job.postedAt !== "Today" && job.postedAt !== "Yesterday") return false;
@@ -36,14 +47,16 @@ export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
 
       return true;
     });
-  }, [updates, search, typeFilter, timeFilter]);
+  }, [updates, search, locationSearch, isRemoteOnly, typeFilter, timeFilter]);
 
   const allTypes = ["All", "Full-time", "Internship", "Contract", "Part-time", "Freelance", "Other"];
 
-  const hasActiveFilters = search !== "" || typeFilter !== "All" || timeFilter !== "Any time";
+  const hasActiveFilters = search !== "" || locationSearch !== "" || isRemoteOnly || typeFilter !== "All" || timeFilter !== "Any time";
 
   const clearFilters = () => {
     setSearch("");
+    setLocationSearch("");
+    setIsRemoteOnly(false);
     setTypeFilter("All");
     setTimeFilter("Any time");
   };
@@ -65,6 +78,29 @@ export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors"
             />
           </div>
+
+          {/* Location Filter */}
+          <div className="flex-1 relative">
+            <Search className="w-5 h-5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text"
+              placeholder="Country or location (e.g. US, India)"
+              value={locationSearch}
+              onChange={(e) => setLocationSearch(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors"
+            />
+          </div>
+
+          {/* Remote Only Toggle */}
+          <label className="flex items-center gap-2 cursor-pointer bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5">
+            <input 
+              type="checkbox" 
+              checked={isRemoteOnly}
+              onChange={(e) => setIsRemoteOnly(e.target.checked)}
+              className="rounded border-zinc-700 text-blue-500 focus:ring-blue-500/20 bg-zinc-900"
+            />
+            <span className="text-sm text-zinc-300">Remote Only</span>
+          </label>
 
           {/* Type Filter */}
           <select 
