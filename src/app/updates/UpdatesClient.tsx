@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { JobUpdate } from "@/actions/ai-updates";
-import { Megaphone, ExternalLink, Briefcase, Calendar, Search, FilterX } from "lucide-react";
+import { Megaphone, ExternalLink, Briefcase, Calendar, Search, FilterX, BookmarkPlus, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { addInternship } from "@/actions/internships";
 
 export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
   const [search, setSearch] = useState("");
@@ -11,6 +12,29 @@ export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
   const [isRemoteOnly, setIsRemoteOnly] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"All" | JobUpdate["type"]>("All");
   const [timeFilter, setTimeFilter] = useState<"Any time" | "Today" | "Yesterday" | "Past Week">("Any time");
+
+  const [savingState, setSavingState] = useState<Record<string, "saving" | "Wishlist" | "Applied">>({});
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+
+  const handleSaveToKanban = async (job: JobUpdate, status: "Wishlist" | "Applied") => {
+    setSavingState(prev => ({ ...prev, [job.id]: "saving" }));
+    setOpenDropdownId(null);
+    try {
+      const fd = new FormData();
+      fd.append("company", job.company);
+      fd.append("role", job.role);
+      fd.append("status", status);
+      await addInternship(fd);
+      setSavingState(prev => ({ ...prev, [job.id]: status }));
+    } catch (e) {
+      setSavingState(prev => {
+        const next = { ...prev };
+        delete next[job.id];
+        return next;
+      });
+      alert("Failed to save to tracker. Please try again.");
+    }
+  };
 
   const filteredUpdates = useMemo(() => {
     return updates.filter(job => {
@@ -179,14 +203,64 @@ export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
 
               <div className="flex items-center justify-between mt-auto pt-4 border-t border-zinc-800">
                 <span className="text-xs text-zinc-500">Posted {job.postedAt}</span>
-                <a 
-                  href={job.applyLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 text-sm font-medium bg-white text-black px-4 py-2 rounded-lg hover:bg-zinc-200 transition-colors"
-                >
-                  Apply Now <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                <div className="flex items-center gap-2">
+                  
+                  {/* Save to Tracker Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenDropdownId(openDropdownId === job.id ? null : job.id)}
+                      disabled={savingState[job.id] === "saving" || savingState[job.id] === "Wishlist" || savingState[job.id] === "Applied"}
+                      className={cn(
+                        "flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-colors border",
+                        savingState[job.id] === "Wishlist" || savingState[job.id] === "Applied"
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 cursor-default"
+                          : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
+                      )}
+                    >
+                      {savingState[job.id] === "saving" ? (
+                        <div className="w-3.5 h-3.5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+                      ) : savingState[job.id] === "Wishlist" || savingState[job.id] === "Applied" ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          Saved as {savingState[job.id]}
+                        </>
+                      ) : (
+                        <>
+                          <BookmarkPlus className="w-3.5 h-3.5" />
+                          Save
+                          <ChevronDown className="w-3 h-3 ml-0.5 opacity-70" />
+                        </>
+                      )}
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {openDropdownId === job.id && !savingState[job.id] && (
+                      <div className="absolute right-0 bottom-full mb-1 w-32 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-10 animate-in fade-in slide-in-from-bottom-2">
+                        <button
+                          onClick={() => handleSaveToKanban(job, "Wishlist")}
+                          className="w-full text-left px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                        >
+                          To Wishlist
+                        </button>
+                        <button
+                          onClick={() => handleSaveToKanban(job, "Applied")}
+                          className="w-full text-left px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                        >
+                          To Applied
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <a 
+                    href={job.applyLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-sm font-medium bg-white text-black px-4 py-2 rounded-lg hover:bg-zinc-200 transition-colors"
+                  >
+                    Apply <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
             </div>
           ))}
