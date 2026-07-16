@@ -1,4 +1,5 @@
 import { fetchLiveJobUpdates } from "@/actions/ai-updates";
+import { getInternships } from "@/actions/internships";
 import { Megaphone } from "lucide-react";
 import { UpdatesClient } from "./UpdatesClient";
 
@@ -6,7 +7,10 @@ import { UpdatesClient } from "./UpdatesClient";
 export const revalidate = 0; // Or 3600 if we want to cache the page
 
 export default async function UpdatesPage() {
-  const result = await fetchLiveJobUpdates();
+  const [result, existingInternships] = await Promise.all([
+    fetchLiveJobUpdates(),
+    getInternships()
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -27,7 +31,7 @@ export default async function UpdatesPage() {
       )}
 
       {result.updates && result.updates.length > 0 ? (
-        <UpdatesClient updates={result.updates} />
+        <UpdatesClient updates={result.updates} existingInternships={existingInternships} />
       ) : (
         !result.error && (
           <div className="p-12 text-center border border-zinc-800 rounded-xl bg-zinc-900/50">

@@ -7,7 +7,7 @@ export type JobUpdate = {
   id: string;
   company: string;
   role: string;
-  type: "Internship" | "Full-time" | "Contract" | "Freelance" | "Part-time" | "Other";
+  type: "Internship" | "Full-time" | "Contract" | "Freelance" | "Part-time" | "Hackathon" | "Other";
   status: "Open" | "Closing Soon" | "Closed";
   deadline: string;
   applyLink: string;
@@ -148,21 +148,22 @@ async function fetchGroqUpdates(): Promise<JobUpdate[]> {
       messages: [
         {
           role: "system",
-          content: `You are an expert tech recruiter API. Output ONLY valid JSON containing an array of 15 current/recent active off-campus drives or internships in India for freshers and junior developers. 
-Include top companies like Wipro, Flipkart, TCS, Amazon, Google, Microsoft, Adobe, Swiggy, Zomato, Infosys, and Tech Mahindra. 
-CRITICAL: For the "applyLink", you MUST provide the official career page root url of that company (e.g., https://careers.wipro.com/careers-home/, https://www.flipkartcareers.com/) to ensure it is a valid, working link. Do not make up fake specific job paths.
+          content: `You are an expert tech recruiter API. Output ONLY valid JSON containing an array of exactly 20 items: 
+1. 15 current/recent active off-campus drives or internships in India for freshers (Include top companies like Wipro, Flipkart, TCS, Amazon, Google, Microsoft, Adobe, Swiggy, Zomato).
+2. 5 top-tier active global or Indian Hackathons (e.g., MLH, Devfolio, Smart India Hackathon).
+CRITICAL: For the "applyLink", you MUST provide the official career page root url or official hackathon platform URL (e.g., https://careers.wipro.com/careers-home/, https://devfolio.co/hackathons) to ensure it is a valid working link. Do not make up fake specific paths.
 Output format:
 {
   "jobs": [
     {
-      "company": "Company Name",
-      "role": "Role Name",
-      "type": "Internship" | "Full-time",
+      "company": "Company Name or Hackathon Organizer",
+      "role": "Role Name or Hackathon Name",
+      "type": "Internship" | "Full-time" | "Hackathon",
       "status": "Open",
       "deadline": "Closing Soon" or a date,
-      "applyLink": "OFFICIAL_CAREERS_URL",
+      "applyLink": "OFFICIAL_URL",
       "notes": "Short description",
-      "location": "India (Hybrid/On-site)",
+      "location": "India (Hybrid/On-site) or Remote",
       "isRemote": false
     }
   ]
@@ -197,7 +198,7 @@ Output format:
         id: `ai-local-${idx}`,
         company: job.company || "Unknown",
         role: job.role || "Role",
-        type: job.type === "Internship" ? "Internship" : "Full-time",
+        type: job.type === "Internship" ? "Internship" : job.type === "Hackathon" ? "Hackathon" : "Full-time",
         status: "Open",
         deadline: job.deadline || "Rolling",
         applyLink: job.applyLink || "#",

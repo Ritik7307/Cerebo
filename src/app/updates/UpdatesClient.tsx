@@ -5,15 +5,27 @@ import { JobUpdate } from "@/actions/ai-updates";
 import { Megaphone, ExternalLink, Briefcase, Calendar, Search, FilterX, BookmarkPlus, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addInternship } from "@/actions/internships";
+import type { Internship } from "@prisma/client";
 
-export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
+export function UpdatesClient({ updates, existingInternships = [] }: { updates: JobUpdate[], existingInternships?: Internship[] }) {
   const [search, setSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
   const [isRemoteOnly, setIsRemoteOnly] = useState(false);
   const [typeFilter, setTypeFilter] = useState<"All" | JobUpdate["type"]>("All");
   const [timeFilter, setTimeFilter] = useState<"Any time" | "Today" | "Yesterday" | "Past Week">("Any time");
 
-  const [savingState, setSavingState] = useState<Record<string, "saving" | "Wishlist" | "Applied">>({});
+  const initialSavingState = useMemo(() => {
+    const state: Record<string, "saving" | "Wishlist" | "Applied" | string> = {};
+    updates.forEach(job => {
+      const match = existingInternships.find(i => i.company === job.company && i.role === job.role);
+      if (match) {
+        state[job.id] = match.status;
+      }
+    });
+    return state;
+  }, [updates, existingInternships]);
+
+  const [savingState, setSavingState] = useState<Record<string, "saving" | "Wishlist" | "Applied" | string>>(initialSavingState);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const handleSaveToKanban = async (job: JobUpdate, status: "Wishlist" | "Applied") => {
@@ -73,7 +85,7 @@ export function UpdatesClient({ updates }: { updates: JobUpdate[] }) {
     });
   }, [updates, search, locationSearch, isRemoteOnly, typeFilter, timeFilter]);
 
-  const allTypes = ["All", "Full-time", "Internship", "Contract", "Part-time", "Freelance", "Other"];
+  const allTypes = ["All", "Full-time", "Internship", "Contract", "Part-time", "Freelance", "Hackathon", "Other"];
 
   const hasActiveFilters = search !== "" || locationSearch !== "" || isRemoteOnly || typeFilter !== "All" || timeFilter !== "Any time";
 
