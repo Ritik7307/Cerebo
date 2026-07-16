@@ -15,9 +15,12 @@ export function UpdatesClient({ updates, existingInternships = [] }: { updates: 
   const [timeFilter, setTimeFilter] = useState<"Any time" | "Today" | "Yesterday" | "Past Week">("Any time");
 
   const initialSavingState = useMemo(() => {
-    const state: Record<string, "saving" | "Wishlist" | "Applied" | string> = {};
+    const state: Record<string, "saving" | string> = {};
     updates.forEach(job => {
-      const match = existingInternships.find(i => i.company === job.company && i.role === job.role);
+      const match = existingInternships.find(i => 
+        i.company.toLowerCase() === job.company.toLowerCase() && 
+        i.role.toLowerCase() === job.role.toLowerCase()
+      );
       if (match) {
         state[job.id] = match.status;
       }
@@ -25,7 +28,7 @@ export function UpdatesClient({ updates, existingInternships = [] }: { updates: 
     return state;
   }, [updates, existingInternships]);
 
-  const [savingState, setSavingState] = useState<Record<string, "saving" | "Wishlist" | "Applied" | string>>(initialSavingState);
+  const [savingState, setSavingState] = useState<Record<string, "saving" | string>>(initialSavingState);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const handleSaveToKanban = async (job: JobUpdate, status: "Wishlist" | "Applied") => {
@@ -182,8 +185,10 @@ export function UpdatesClient({ updates, existingInternships = [] }: { updates: 
 
       {filteredUpdates.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUpdates.map((job) => (
-            <div key={job.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 hover:border-zinc-700 transition-colors flex flex-col group">
+          {filteredUpdates.map((job) => {
+            const isSaved = savingState[job.id] && savingState[job.id] !== "saving";
+            return (
+            <div key={job.id} className={cn("bg-zinc-900 border rounded-xl p-6 transition-colors flex flex-col group", isSaved ? "border-emerald-500/30" : "border-zinc-800 hover:border-zinc-700")}>
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1" title={job.company}>
@@ -221,20 +226,20 @@ export function UpdatesClient({ updates, existingInternships = [] }: { updates: 
                   <div className="relative">
                     <button
                       onClick={() => setOpenDropdownId(openDropdownId === job.id ? null : job.id)}
-                      disabled={savingState[job.id] === "saving" || savingState[job.id] === "Wishlist" || savingState[job.id] === "Applied"}
+                      disabled={Boolean(isSaved) || savingState[job.id] === "saving"}
                       className={cn(
                         "flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-colors border",
-                        savingState[job.id] === "Wishlist" || savingState[job.id] === "Applied"
+                        isSaved
                           ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 cursor-default"
                           : "bg-zinc-900 text-zinc-300 border-zinc-700 hover:bg-zinc-800"
                       )}
                     >
                       {savingState[job.id] === "saving" ? (
                         <div className="w-3.5 h-3.5 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-                      ) : savingState[job.id] === "Wishlist" || savingState[job.id] === "Applied" ? (
+                      ) : isSaved ? (
                         <>
                           <Check className="w-3.5 h-3.5" />
-                          Saved as {savingState[job.id]}
+                          In {savingState[job.id]}
                         </>
                       ) : (
                         <>
@@ -275,7 +280,8 @@ export function UpdatesClient({ updates, existingInternships = [] }: { updates: 
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="p-12 text-center border border-zinc-800 rounded-xl bg-zinc-900/50">
